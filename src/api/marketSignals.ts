@@ -57,6 +57,33 @@ export interface TurnEstimate {
   rationale: string
 }
 
+export interface CryptoStrategistViewPoint {
+  title: string
+  signal: string
+  summary: string
+  action: string
+}
+
+export interface CryptoStrategistSource {
+  title: string
+  url: string
+  publishedAt: string
+}
+
+export interface FundstratCryptoView {
+  strategist: string
+  role: string
+  firm: string
+  asOf: string
+  stanceLabel: string
+  cycleBias: string
+  integrationNote: string
+  btcView: CryptoStrategistViewPoint
+  ethView: CryptoStrategistViewPoint
+  liquidityView: CryptoStrategistViewPoint
+  sources: CryptoStrategistSource[]
+}
+
 export interface CryptoCycleData {
   asOf: string
   isFallback: boolean
@@ -73,6 +100,7 @@ export interface CryptoCycleData {
   ethDominance: number | null
   globalMarket: CryptoGlobalMarket | null
   stablecoins: StablecoinSnapshot | null
+  fundstratView: FundstratCryptoView
   sources: DataSourceStatus[]
 }
 
@@ -310,6 +338,51 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000
 const AVERAGE_BLOCK_MS = 10 * 60 * 1000
 const NEXT_HALVING_HEIGHT = 1_050_000
 const LAST_HALVING_DATE = '2024-04-20'
+
+export const FUNDSTRAT_CRYPTO_VIEW: FundstratCryptoView = {
+  strategist: 'Sean Farrell',
+  role: 'Head of Digital Asset Strategy',
+  firm: 'Fundstrat',
+  asOf: '2026-06-23',
+  stanceLabel: '战术反弹可看，耐久底部未确认',
+  cycleBias: '外部观点偏谨慎顺风：不是抄底确认，也不是顶部警报。',
+  integrationNote: '这组观点只做叙事校验，不进入周期分。只有当 BTC 趋势、稳定币流动性和情绪确认同步改善时，才把它当成加仓顺风。',
+  btcView: {
+    title: 'BTC',
+    signal: '偏战术反弹',
+    summary: 'Sean Farrell 最新公开评论把 BTC 相关风险放在流动性和买盘确认上；6 月中旬的框架支持反弹概率，但强调耐久底部仍难确认。',
+    action: 'BTC 站上趋势线且稳定币 30D 转正时，外部观点可以作为右侧加仓的顺风；否则只支持小仓观察。',
+  },
+  ethView: {
+    title: 'ETH',
+    signal: '等待扩散确认',
+    summary: '同一批公开评论把 ETH 放在 BTC/风险资产一起跟踪。当前更像高 beta 参与度信号，不是独立抄底信号。',
+    action: 'ETH 要等 BTC 趋势确认后再看补涨；若 ETH 市占率和链上资金没有同步改善，不把 ETH 单独当作牛市确认。',
+  },
+  liquidityView: {
+    title: '流动性',
+    signal: '核心压制项',
+    summary: '6 月 23 日公开评论继续把流动性条件列为关键问题，说明外部策略并未给出无条件追多信号。',
+    action: '如果稳定币供应收缩或 BTC 买盘不足，Fundstrat 观点应被解释为谨慎反弹，而不是全面转牛。',
+  },
+  sources: [
+    {
+      title: '2026-06-23 Sean Farrell crypto comment',
+      url: 'https://fundstratdirect.com/crypto-research/crypto-comments/2026/06/23/strategy-rebuilds-confidence-but-liquidity-conditions-remain-a-pressing-que/',
+      publishedAt: '2026-06-23',
+    },
+    {
+      title: '2026-06-16 Sean Farrell DXY and tactical rally comment',
+      url: 'https://fundstratdirect.com/crypto-research/crypto-comments/2026/06/16/dxy-trends-reinforce-favorable-odds-of-a-tactical-rally-but-durable-lows-re/',
+      publishedAt: '2026-06-16',
+    },
+    {
+      title: '2026-06-12 Sean Farrell BTC/ETH buyer-demand comment',
+      url: 'https://fundstratdirect.com/crypto-research/crypto-comments/2026/06/12/bearish-narratives-ease-but-crypto-still-struggles-to-attract-buyers-spacex/',
+      publishedAt: '2026-06-12',
+    },
+  ],
+}
 const AI_SYMBOLS = ['NVDA', 'MSFT', 'GOOGL', 'AMZN', 'META', 'AVGO', 'AMD', 'TSM', 'ORCL', 'ARM', 'MU', 'DELL', 'VRT', 'ANET', 'PLTR', 'CRM', 'NOW', 'SNOW', 'SMH']
 const AI_PRICE_SYMBOLS = ['NVDA', 'MSFT', 'GOOGL', 'AMZN', 'META', 'AVGO', 'AMD', 'TSM', 'ORCL', 'MU', 'PLTR', 'SMH']
 const AI_SEC_CIKS: Record<string, string> = {
@@ -1147,6 +1220,7 @@ export async function getCryptoCycleData(): Promise<CryptoCycleData> {
     ethDominance: parsedGlobal?.ethDominance ?? null,
     globalMarket: parsedGlobal,
     stablecoins,
+    fundstratView: FUNDSTRAT_CRYPTO_VIEW,
     sources,
   }
 }

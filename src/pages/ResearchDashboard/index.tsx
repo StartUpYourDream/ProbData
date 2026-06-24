@@ -11,7 +11,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { getAiBubbleData, getAiFinancialData, getCryptoCycleData, marketSignalFormatters } from '../../api/marketSignals'
+import { FUNDSTRAT_CRYPTO_VIEW, getAiBubbleData, getAiFinancialData, getCryptoCycleData, marketSignalFormatters } from '../../api/marketSignals'
 import type { AiBubbleData, AiFinancialSnapshot, CryptoCycleData, DataSourceStatus, MacroSignal, SignalIndicator } from '../../api/marketSignals'
 
 type ResearchTab = 'ai' | 'crypto'
@@ -1868,6 +1868,142 @@ function CryptoSignalBoard({ map }: { map: CycleMapData }) {
   )
 }
 
+function FundstratCryptoViewPanel({ data, map }: { data: CryptoCycleData; map: CycleMapData }) {
+  const view = data.fundstratView ?? FUNDSTRAT_CRYPTO_VIEW
+  const btcTrend = map.confirmItems.find((item) => item.id === 'btc-200d')
+  const stablecoin = map.confirmItems.find((item) => item.id === 'stablecoin')
+  const ethDominance = data.ethDominance === null ? '无数据' : `${data.ethDominance.toFixed(1)}%`
+  const btcStatus: MetricStatus = btcTrend?.passed && stablecoin?.passed
+    ? 'green'
+    : btcTrend?.passed || stablecoin?.passed
+      ? 'yellow'
+      : 'neutral'
+  const ethStatus: MetricStatus = map.confirmationCount >= 3
+    ? 'green'
+    : data.ethDominance === null
+      ? 'pending'
+      : 'yellow'
+  const liquidityStatus: MetricStatus = stablecoin?.passed ? 'green' : 'yellow'
+  const integrationStatus: MetricStatus = map.confirmationCount >= 3
+    ? 'green'
+    : stablecoin?.passed
+      ? 'yellow'
+      : 'neutral'
+  const cards: Array<{
+    id: string
+    title: string
+    verdict: string
+    value: string
+    detail: string
+    action: string
+    status: MetricStatus
+    progress: number
+  }> = [
+    {
+      id: 'btc',
+      title: view.btcView.title,
+      verdict: view.btcView.signal,
+      value: btcTrend?.value ?? '趋势无数据',
+      detail: view.btcView.summary,
+      action: view.btcView.action,
+      status: btcStatus,
+      progress: btcTrend?.progress ?? 0,
+    },
+    {
+      id: 'eth',
+      title: view.ethView.title,
+      verdict: view.ethView.signal,
+      value: `ETH 市占率 ${ethDominance}`,
+      detail: view.ethView.summary,
+      action: view.ethView.action,
+      status: ethStatus,
+      progress: data.ethDominance === null ? 0 : clampPercent(data.ethDominance * 5),
+    },
+    {
+      id: 'liquidity',
+      title: view.liquidityView.title,
+      verdict: view.liquidityView.signal,
+      value: stablecoin?.value ?? '流动性无数据',
+      detail: view.liquidityView.summary,
+      action: view.liquidityView.action,
+      status: liquidityStatus,
+      progress: stablecoin?.progress ?? 0,
+    },
+    {
+      id: 'integration',
+      title: '融合结论',
+      verdict: map.confirmationCount >= 3 ? '顺风确认' : '只作校验',
+      value: `${map.confirmationCount}/4 确认`,
+      detail: view.cycleBias,
+      action: view.integrationNote,
+      status: integrationStatus,
+      progress: map.confirmationCount / 4 * 100,
+    },
+  ]
+
+  return (
+    <div className="bg-dark-800 dark:bg-dark-800 light:bg-white rounded-lg border border-dark-700 dark:border-dark-700 light:border-gray-200 p-6">
+      <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+        <div>
+          <div className="text-xl font-semibold text-gray-100 dark:text-gray-100 light:text-gray-900">
+            Fundstrat 外部观点校验
+          </div>
+          <p className="mt-2 max-w-4xl text-sm leading-6 text-gray-400 dark:text-gray-400 light:text-gray-600">
+            {view.strategist}（{view.role}）最新公开评论没有给出 BTC/ETH 精确价格目标；这里把他的 BTC、ETH、流动性框架翻译成仓位校验。
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2 text-sm xl:justify-end">
+          <span className={`rounded-md border px-3 py-1.5 ${statusStyles[integrationStatus]}`}>
+            {view.stanceLabel}
+          </span>
+          <span className="rounded-md border border-dark-600 dark:border-dark-600 light:border-gray-200 px-3 py-1.5 text-gray-400">
+            来源更新 {compactDate(view.asOf)}
+          </span>
+        </div>
+      </div>
+
+      <div className="mt-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+        {cards.map((card) => (
+          <div key={card.id} className="rounded-lg border border-dark-700 dark:border-dark-700 light:border-gray-200 bg-dark-900/20 dark:bg-dark-900/20 light:bg-gray-50 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-sm text-gray-500 dark:text-gray-500 light:text-gray-600">{card.title}</div>
+                <div className="mt-1 text-lg font-semibold text-gray-100 dark:text-gray-100 light:text-gray-900">{card.verdict}</div>
+              </div>
+              <span className={`shrink-0 rounded-md border px-2 py-1 text-xs ${statusStyles[card.status]}`}>
+                {statusText(card.status)}
+              </span>
+            </div>
+            <div className="mt-4">
+              <div className="h-2 rounded-full bg-dark-700 dark:bg-dark-700 light:bg-gray-200 overflow-hidden">
+                <div className={`h-full rounded-full ${lightBarClass(card.status)}`} style={{ width: `${clampPercent(card.progress)}%` }} />
+              </div>
+            </div>
+            <div className="mt-3 font-mono text-sm text-gray-300 dark:text-gray-300 light:text-gray-700">{card.value}</div>
+            <div className="mt-2 text-xs leading-5 text-gray-500 dark:text-gray-500 light:text-gray-600">{card.detail}</div>
+            <div className="mt-3 text-xs leading-5 text-gray-400 dark:text-gray-400 light:text-gray-700">{card.action}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-500 light:text-gray-600">
+        <span>来源:</span>
+        {view.sources.map((source) => (
+          <a
+            key={source.url}
+            href={source.url}
+            target="_blank"
+            rel="noreferrer"
+            className="rounded-md border border-dark-700 dark:border-dark-700 light:border-gray-200 px-2.5 py-1 hover:text-primary"
+          >
+            {source.publishedAt}
+          </a>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function AiBubbleStagePanel({ data, action }: { data: AiBubbleData; action: string }) {
   const stages = [
     { label: '冷却修复', start: 0, end: 32, className: 'bg-sky-500/35', textClass: 'text-sky-200' },
@@ -2517,6 +2653,9 @@ export function ResearchDashboard({ initialTab = 'ai' }: ResearchDashboardProps)
   const aiBubbleData = pageType === 'ai'
     ? displayData as AiBubbleData
     : null
+  const cryptoFundstratView = pageType === 'crypto'
+    ? ((displayData as CryptoCycleData).fundstratView ?? FUNDSTRAT_CRYPTO_VIEW)
+    : null
   const usesSimplifiedResearchView = pageType === 'crypto' || pageType === 'ai'
   const saveJudgment = (value: string) => {
     setJudgment(value)
@@ -2532,6 +2671,11 @@ export function ResearchDashboard({ initialTab = 'ai' }: ResearchDashboardProps)
       ...(cryptoTimingCards.length > 0 ? [
         '周期时间表:',
         ...cryptoTimingCards.map((card) => `- ${card.title}: ${card.value} / ${card.detail}`),
+        '',
+      ] : []),
+      ...(pageType === 'crypto' ? [
+        `Fundstrat 外部观点: ${cryptoFundstratView?.stanceLabel ?? FUNDSTRAT_CRYPTO_VIEW.stanceLabel}`,
+        `融合: ${cryptoFundstratView?.integrationNote ?? FUNDSTRAT_CRYPTO_VIEW.integrationNote}`,
         '',
       ] : []),
       '风险提示:',
@@ -2704,6 +2848,8 @@ export function ResearchDashboard({ initialTab = 'ai' }: ResearchDashboardProps)
         {pageType === 'ai' && aiBubbleData && <AiCapitalHealthBoard data={aiBubbleData} isLoadingFinancials={aiFinancialQuery.isFetching} />}
 
         {pageType === 'crypto' && cryptoCycleMap && <CryptoSignalBoard map={cryptoCycleMap} />}
+
+        {pageType === 'crypto' && cryptoCycleMap && <FundstratCryptoViewPanel data={displayData as CryptoCycleData} map={cryptoCycleMap} />}
 
         {cryptoCycleMap && <CycleMapPanel map={cryptoCycleMap} />}
 
