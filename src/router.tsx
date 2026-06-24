@@ -6,6 +6,7 @@ import { UserDetail } from './pages/UserDetail'
 import { Search } from './pages/Search'
 import { Leaderboard } from './pages/Leaderboard'
 import { Dashboard } from './pages/Dashboard'
+import { ResearchDashboard } from './pages/ResearchDashboard'
 
 export const router = createBrowserRouter([
   {
@@ -14,7 +15,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Trending />,
+        element: <ResearchDashboard initialTab="ai" />,
       },
       {
         path: 'trending',
@@ -39,6 +40,18 @@ export const router = createBrowserRouter([
       {
         path: 'dashboard',
         element: <Dashboard />,
+      },
+      {
+        path: 'crypto-cycle',
+        element: <ResearchDashboard initialTab="crypto" />,
+      },
+      {
+        path: 'ai-bubble',
+        element: <ResearchDashboard initialTab="ai" />,
+      },
+      {
+        path: 'research',
+        element: <ResearchDashboard initialTab="ai" />,
       },
       {
         path: 'portfolio',

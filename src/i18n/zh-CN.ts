@@ -18,6 +18,8 @@ export const zhCN = {
     trending: '热门',
     leaderboard: '排行榜',
     dashboard: '数据看板',
+    cryptoCycle: '加密周期',
+    aiBubble: 'AI 泡沫',
     portfolio: '我的持仓',
     events: '事件',
     user: '用户',

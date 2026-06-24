@@ -17,6 +17,8 @@ export function Header() {
   const { t } = useTranslation()
   const { locale, setLocale } = useI18n()
   const { theme, toggleTheme } = useTheme()
+  const showPolymarketTabs = false
+  const homePath = showPolymarketTabs ? '/' : '/ai-bubble'
 
   // Load search history from localStorage
   useEffect(() => {
@@ -77,9 +79,9 @@ export function Header() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-lg dark:bg-dark-800/80 light:bg-white/80">
-      <div className="max-w-[1800px] mx-auto px-6 h-16 flex items-center gap-6">
+      <div className="max-w-[1800px] mx-auto px-3 sm:px-6 h-16 flex items-center gap-3 xl:gap-6">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 flex-shrink-0">
+        <Link to={homePath} className="flex items-center gap-2 flex-shrink-0">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
             <span className="text-white font-bold text-lg">P</span>
           </div>
@@ -87,51 +89,79 @@ export function Header() {
         </Link>
 
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-1 flex-shrink-0">
+        <div className="flex items-center gap-1 flex-1 xl:flex-none min-w-0 overflow-x-auto scrollbar-hide">
+          {/* Polymarket tabs are temporarily hidden while this app focuses on personal research pages. */}
+          {showPolymarketTabs && (
+            <>
+              <Link
+                to="/"
+                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
+                  location.pathname === '/' || location.pathname === '/trending' || location.pathname.startsWith('/event/')
+                    ? 'bg-primary text-white'
+                    : 'text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-gray-100 dark:hover:text-gray-100 light:hover:text-gray-900 hover:bg-dark-700/50 dark:hover:bg-dark-700/50 light:hover:bg-gray-100'
+                }`}
+              >
+                {t('nav.trending')}
+              </Link>
+              <Link
+                to="/leaderboard"
+                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
+                  location.pathname === '/leaderboard'
+                    ? 'bg-primary text-white'
+                    : 'text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-gray-100 dark:hover:text-gray-100 light:hover:text-gray-900 hover:bg-dark-700/50 dark:hover:bg-dark-700/50 light:hover:bg-gray-100'
+                }`}
+              >
+                {t('nav.leaderboard')}
+              </Link>
+              <Link
+                to="/dashboard"
+                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
+                  location.pathname === '/dashboard'
+                    ? 'bg-primary text-white'
+                    : 'text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-gray-100 dark:hover:text-gray-100 light:hover:text-gray-900 hover:bg-dark-700/50 dark:hover:bg-dark-700/50 light:hover:bg-gray-100'
+                }`}
+              >
+                {t('nav.dashboard')}
+              </Link>
+            </>
+          )}
           <Link
-            to="/"
-            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
-              location.pathname === '/' || location.pathname === '/trending' || location.pathname.startsWith('/event/')
+            to="/crypto-cycle"
+            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
+              location.pathname === '/crypto-cycle'
                 ? 'bg-primary text-white'
                 : 'text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-gray-100 dark:hover:text-gray-100 light:hover:text-gray-900 hover:bg-dark-700/50 dark:hover:bg-dark-700/50 light:hover:bg-gray-100'
             }`}
           >
-            {t('nav.trending')}
+            {t('nav.cryptoCycle')}
           </Link>
           <Link
-            to="/leaderboard"
-            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
-              location.pathname === '/leaderboard'
+            to="/ai-bubble"
+            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
+              location.pathname === '/' || location.pathname === '/ai-bubble' || location.pathname === '/research'
                 ? 'bg-primary text-white'
                 : 'text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-gray-100 dark:hover:text-gray-100 light:hover:text-gray-900 hover:bg-dark-700/50 dark:hover:bg-dark-700/50 light:hover:bg-gray-100'
             }`}
           >
-            {t('nav.leaderboard')}
+            {t('nav.aiBubble')}
           </Link>
-          <Link
-            to="/dashboard"
-            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
-              location.pathname === '/dashboard'
-                ? 'bg-primary text-white'
-                : 'text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-gray-100 dark:hover:text-gray-100 light:hover:text-gray-900 hover:bg-dark-700/50 dark:hover:bg-dark-700/50 light:hover:bg-gray-100'
-            }`}
-          >
-            {t('nav.dashboard')}
-          </Link>
-          <Link
-            to="/portfolio"
-            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all ${
-              location.pathname.startsWith('/portfolio') || location.pathname.startsWith('/user/')
-                ? 'bg-primary text-white'
-                : 'text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-gray-100 dark:hover:text-gray-100 light:hover:text-gray-900 hover:bg-dark-700/50 dark:hover:bg-dark-700/50 light:hover:bg-gray-100'
-            }`}
-          >
-            {t('nav.portfolio')}
-          </Link>
+          {showPolymarketTabs && (
+            <Link
+              to="/portfolio"
+              className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all whitespace-nowrap flex-shrink-0 ${
+                location.pathname.startsWith('/portfolio') || location.pathname.startsWith('/user/')
+                  ? 'bg-primary text-white'
+                  : 'text-gray-400 dark:text-gray-400 light:text-gray-600 hover:text-gray-100 dark:hover:text-gray-100 light:hover:text-gray-900 hover:bg-dark-700/50 dark:hover:bg-dark-700/50 light:hover:bg-gray-100'
+              }`}
+            >
+              {t('nav.portfolio')}
+            </Link>
+          )}
         </div>
 
         {/* Search Bar */}
-        <form onSubmit={handleSearch} className="flex-1 max-w-xl relative">
+        {showPolymarketTabs && (
+        <form onSubmit={handleSearch} className="hidden xl:block flex-1 max-w-xl relative">
           <div className="relative" ref={dropdownRef}>
             <input
               ref={inputRef}
@@ -194,9 +224,10 @@ export function Header() {
             )}
           </div>
         </form>
+        )}
 
         {/* Right Side Actions */}
-        <div className="flex items-center gap-4 flex-shrink-0">
+        <div className="hidden xl:flex items-center gap-4 flex-shrink-0 ml-auto">
           {/* Theme Switcher */}
           <button
             onClick={toggleTheme}
@@ -246,14 +277,16 @@ export function Header() {
             </button>
           </div>
 
-          <a
-            href="https://polymarket.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-primary text-sm whitespace-nowrap"
-          >
-            {t('market.tradeOn')} →
-          </a>
+          {showPolymarketTabs && (
+            <a
+              href="https://polymarket.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-primary text-sm whitespace-nowrap"
+            >
+              {t('market.tradeOn')} →
+            </a>
+          )}
         </div>
       </div>
     </header>
